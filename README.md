@@ -1,280 +1,264 @@
-import React, { useState, useEffect } from 'react';
-import { Download, MapPin, Building2, Layers, Lightbulb, BookOpen, Info, HelpCircle } from 'lucide-react';
-
-const App = () => {
-  const [imageUrl, setImageUrl] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(true);
-  const [showHelp, setShowHelp] = useState(false);
-
-  const apiKey = ""; // La clave se proporciona en el entorno de ejecución
-
-  const generateMainImage = async () => {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instances: [{ 
-            prompt: "Modern architectural photography of CaixaForum Zaragoza by Carme Pinós, two suspended geometric aluminum volumes, golden hour lighting, sharp lines, cinematic wide angle" 
-          }],
-          parameters: { sampleCount: 1 }
-        })
-      });
-      const result = await response.json();
-      if (result.predictions && result.predictions[0]) {
-        setImageUrl(`data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`);
-      }
-    } catch (error) {
-      console.error("Error generating image:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  useEffect(() => {
-    generateMainImage();
-  }, []);
-
-  const handleDownload = () => {
-    setShowHelp(true);
-    // Damos un segundo para que el usuario lea el mensaje antes de abrir el diálogo
-    setTimeout(() => {
-      window.print();
-      setShowHelp(false);
-    }, 2000);
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 md:p-8 print:p-0">
-      {/* Mensaje de ayuda para descarga (Solo visible al intentar descargar) */}
-      {showHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm print:hidden">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-sm text-center border-t-4 border-amber-500 animate-in fade-in zoom-in duration-300">
-            <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Download className="text-amber-600" size={32} />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Preparando tu PDF</h3>
-            <p className="text-slate-600 mb-4">
-              En la ventana que aparecerá a continuación, asegúrate de seleccionar 
-              <span className="font-bold text-slate-900"> "Guardar como PDF" </span> 
-              en la opción de <span className="italic">Destino</span> de la impresora.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-xs text-amber-700 font-medium bg-amber-50 p-2 rounded">
-              <HelpCircle size={14} /> Iniciando diálogo de impresión...
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Container Principal */}
-      <div id="infographic" className="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden print:shadow-none print:rounded-none">
-        
-        {/* Header & Bio */}
-        <header className="relative bg-black text-white p-8 md:p-12 overflow-hidden">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-800 opacity-20 -skew-x-12 translate-x-1/4"></div>
-          <div className="relative z-10">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4">CARME PINÓS</h1>
-            <p className="text-xl md:text-2xl font-light text-slate-300 max-w-2xl border-l-4 border-amber-500 pl-6">
-              "La arquitectura es, sobre todo, generosidad. Es crear un lugar donde la gente se sienta libre."
-            </p>
-          </div>
-        </header>
-
-        <section className="p-8 md:p-12 border-b border-slate-100">
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-amber-600">
-                <Info size={24} /> BIOGRAFÍA
-              </h2>
-              <div className="space-y-4 text-slate-700 leading-relaxed">
-                <p>
-                  Nacida en Barcelona en 1954, Carme Pinós es una de las arquitectas españolas con mayor proyección internacional. Tras alcanzar el reconocimiento mundial junto a Enric Miralles en los años 80, fundó su propio estudio en 1991.
-                </p>
-                <p>
-                  Su trabajo se caracteriza por un compromiso profundo con el entorno, la estructura vista y la creación de espacios públicos dinámicos. Ha sido galardonada con el Premio Nacional de Arquitectura de España (2021) y el Berkeley-Rupp Prize, entre otros.
-                </p>
-              </div>
-            </div>
-            <div className="w-full md:w-1/3 bg-slate-100 p-6 rounded-lg italic text-slate-600 text-sm">
-              "No busco la forma por la forma, busco la respuesta a un lugar y a un programa." 
-              <br/><br/>
-              — Carme Pinós en su estudio de Gràcia.
-            </div>
-          </div>
-        </section>
-
-        {/* Proyecto Destacado */}
-        <section className="p-8 md:p-12 bg-slate-900 text-white">
-          <div className="mb-8">
-            <span className="bg-amber-500 text-black px-3 py-1 text-xs font-bold uppercase tracking-widest rounded">Proyecto Destacado</span>
-            <h2 className="text-4xl font-bold mt-2">CAIXAFORUM ZARAGOZA</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-6">
-              {isGenerating ? (
-                <div className="w-full aspect-video bg-slate-800 animate-pulse rounded-lg flex items-center justify-center">
-                  <span className="text-slate-500">Generando visualización...</span>
-                </div>
-              ) : (
-                <img 
-                  src={imageUrl} 
-                  alt="CaixaForum Zaragoza" 
-                  className="w-full rounded-lg shadow-xl hover:scale-[1.02] transition-transform duration-500" 
-                />
-              )}
-              
-              <div className="bg-white/5 p-6 rounded-lg border border-white/10">
-                <h3 className="text-amber-400 font-bold mb-2 flex items-center gap-2">
-                  <Lightbulb size={18} /> ¿Por qué llama la atención?
-                </h3>
-                <p className="text-sm text-slate-300">
-                  Su radicalidad estructural. El edificio parece "levitar" sobre la ciudad, liberando la planta baja para crear una plaza pública. Es un desafío a la gravedad que invita a mirar hacia arriba y participar en la vida urbana.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="p-4 border-l-2 border-slate-700">
-                <div className="flex items-center gap-2 text-amber-500 mb-2 font-semibold">
-                  <MapPin size={18} /> Ubicación
-                </div>
-                <p className="text-sm text-slate-300">Avenida de Anselmo Clavé, 4, 50004 Zaragoza, España.</p>
-              </div>
-
-              <div className="p-4 border-l-2 border-slate-700">
-                <div className="flex items-center gap-2 text-amber-500 mb-2 font-semibold">
-                  <Building2 size={18} /> Uso
-                </div>
-                <p className="text-sm text-slate-300">Centro cultural: salas de exposiciones, auditorio, cafetería y espacios educativos.</p>
-              </div>
-
-              <div className="p-4 border-l-2 border-slate-700">
-                <div className="flex items-center gap-2 text-amber-500 mb-2 font-semibold">
-                  <Layers size={18} /> Materiales
-                </div>
-                <p className="text-sm text-slate-300">Aluminio perforado en fachadas, hormigón armado, estructuras de acero y vidrio de gran formato.</p>
-              </div>
-
-              <div className="p-4 border-l-2 border-slate-700">
-                <div className="flex items-center gap-2 text-amber-500 mb-2 font-semibold">
-                  <Lightbulb size={18} /> Inspiración
-                </div>
-                <p className="text-sm text-slate-300">La idea de "un bosque de columnas" que sostiene dos grandes cajas. La forma fragmentada busca dialogar con la escala de la ciudad.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Sección Técnica: Planos, Fachadas y Plantas */}
-        <section className="p-8 md:p-12">
-          <h2 className="text-2xl font-bold mb-8 border-b pb-2 text-slate-800 uppercase tracking-tight">Análisis Técnico</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Planta */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-slate-600 uppercase text-xs tracking-widest">Planta de Distribución</h3>
-              <div className="bg-slate-100 aspect-square rounded border-2 border-dashed border-slate-300 p-4 relative flex flex-col items-center justify-center">
-                <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                  <rect x="10" y="20" width="30" height="60" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <rect x="40" y="10" width="50" height="40" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <circle cx="50" cy="50" r="5" fill="currentColor" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2" />
-                </svg>
-                <p className="text-[10px] text-slate-400 absolute bottom-2 font-mono">ESQUEMA PLANTA NIVEL +1</p>
-              </div>
-              <p className="text-xs text-slate-500 italic">Las plantas se dividen en dos grandes niveles suspendidos, minimizando el impacto en el suelo.</p>
-            </div>
-
-            {/* Fachada */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-slate-600 uppercase text-xs tracking-widest">Fachada / Envolvente</h3>
-              <div className="bg-slate-100 aspect-square rounded border-2 border-dashed border-slate-300 p-4 relative flex flex-col items-center justify-center">
-                <div className="grid grid-cols-6 gap-2 w-full h-full opacity-30">
-                  {Array.from({length: 36}).map((_, i) => (
-                    <div key={i} className="bg-slate-800 rounded-full w-2 h-2"></div>
-                  ))}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <svg viewBox="0 0 100 100" className="w-4/5 h-4/5">
-                      <path d="M10,80 L40,80 L40,20 L90,20 L90,50 L10,50 Z" fill="none" stroke="black" strokeWidth="1" />
-                   </svg>
-                </div>
-                <p className="text-[10px] text-slate-400 absolute bottom-2 font-mono">DETALLE PANELES PERFORADOS</p>
-              </div>
-              <p className="text-xs text-slate-500 italic">La piel de aluminio permite el paso de luz filtrada, creando un juego de sombras interior.</p>
-            </div>
-
-            {/* Planos (Sección) */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-slate-600 uppercase text-xs tracking-widest">Sección Transversal</h3>
-              <div className="bg-slate-100 aspect-square rounded border-2 border-dashed border-slate-300 p-4 relative flex flex-col items-center justify-center">
-                <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                  <path d="M10,90 L90,90" stroke="black" strokeWidth="2" />
-                  <path d="M30,90 L30,40 M70,90 L70,40" stroke="black" strokeWidth="1.5" />
-                  <rect x="15" y="20" width="70" height="20" fill="none" stroke="black" strokeWidth="1" />
-                  <rect x="25" y="40" width="50" height="15" fill="none" stroke="black" strokeWidth="1" />
-                </svg>
-                <p className="text-[10px] text-slate-400 absolute bottom-2 font-mono">ESQUEMA ESTRUCTURAL</p>
-              </div>
-              <p className="text-xs text-slate-500 italic">Muestra los grandes pilares que soportan los volúmenes en voladizo.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer: Fuentes */}
-        <footer className="bg-slate-50 p-8 border-t border-slate-200">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2">
-              <h4 className="text-sm font-bold flex items-center gap-2 text-slate-700">
-                <BookOpen size={16} /> FUENTES BIBLIOGRÁFICAS
-              </h4>
-              <ul className="text-xs text-slate-500 space-y-1 list-disc ml-4">
-                <li>Estudio Carme Pinós - Archivo de Proyectos (caixafórum zaragoza)</li>
-                <li>Revista El Croquis, N. 159: Carme Pinós 2000-2012</li>
-                <li>ArchDaily - "CaixaForum Zaragoza / Estudio Carme Pinós"</li>
-                <li>Premio Nacional de Arquitectura de España 2021 - MITMA</li>
-              </ul>
-            </div>
-            
-            <button 
-              onClick={handleDownload}
-              className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-bold transition-all shadow-lg hover:shadow-xl active:scale-95 print:hidden group"
-            >
-              <Download size={20} className="group-hover:bounce" /> Descargar PDF
-            </button>
-          </div>
-        </footer>
-      </div>
-
-      <style>{`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía Carme Pinós - Arquitecta</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y Babel para ejecutar JSX en el navegador -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
         @media print {
-          body { 
-            background: white !important; 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-          }
-          .print\\:hidden { display: none !important; }
-          #infographic { 
-            box-shadow: none !important; 
-            border: none !important; 
-            width: 100% !important;
-            margin: 0 !important;
-          }
-          header { background-color: black !important; color: white !important; }
-          section.bg-slate-900 { background-color: #0f172a !important; color: white !important; }
-          .bg-amber-500 { background-color: #f59e0b !important; }
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            #main-card { box-shadow: none !important; border: 1px solid #ddd !important; border-radius: 0 !important; }
         }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-        .group-hover\\:bounce {
-          animation: bounce 1s infinite;
-        }
-      `}</style>
-    </div>
-  );
-};
+        .scroll-smooth { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div id="root"></div>
 
-export default App;
+    <script type="text/babel">
+        // Componentes de Iconos SVG para evitar errores de dependencias externas
+        const IconWrapper = ({ children, size = 20, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const MapPin = (props) => (
+            <IconWrapper {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconWrapper>
+        );
+
+        const Building2 = (props) => (
+            <IconWrapper {...props}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></IconWrapper>
+        );
+
+        const Layers = (props) => (
+            <IconWrapper {...props}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></IconWrapper>
+        );
+
+        const Lightbulb = (props) => (
+            <IconWrapper {...props}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></IconWrapper>
+        );
+
+        const BookOpen = (props) => (
+            <IconWrapper {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconWrapper>
+        );
+
+        const Info = (props) => (
+            <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></IconWrapper>
+        );
+
+        const Download = (props) => (
+            <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></IconWrapper>
+        );
+
+        const App = () => {
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    {/* Botón Flotante de Ayuda para GitHub */}
+                    <div className="fixed bottom-4 right-4 z-50 no-print">
+                        <div className="bg-white p-4 rounded-xl shadow-xl border border-amber-200 max-w-xs text-sm">
+                            <p className="font-bold text-amber-600 mb-1 flex items-center gap-1">
+                                <Info size={16} /> Tip para GitHub:
+                            </p>
+                            <p className="text-slate-600">
+                                Asegúrate de que el archivo se llame <strong>index.html</strong> para que GitHub Pages lo reconozca automáticamente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="main-card" className="max-w-5xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden">
+                        
+                        {/* Cabecera Estilo Arquitectónico */}
+                        <header className="relative bg-neutral-900 text-white p-8 md:p-16 overflow-hidden">
+                            <div className="absolute top-0 right-0 w-1/2 h-full bg-amber-500/10 -skew-x-12 translate-x-1/4"></div>
+                            <div className="relative z-10">
+                                <span className="text-amber-500 font-bold tracking-widest text-sm uppercase">Arquitecta Española</span>
+                                <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-4">CARME PINÓS</h1>
+                                <p className="text-xl md:text-2xl font-light text-slate-400 max-w-2xl border-l-4 border-amber-600 pl-6 italic">
+                                    "La arquitectura es crear un lugar donde la gente se sienta libre."
+                                </p>
+                            </div>
+                        </header>
+
+                        {/* Biografía */}
+                        <section className="p-8 md:p-12 border-b border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-12">
+                            <div className="md:col-span-2">
+                                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-amber-600 uppercase tracking-tight">
+                                    <span className="bg-amber-100 p-2 rounded-lg text-amber-600"><Info size={20} /></span> Biografía
+                                </h2>
+                                <div className="space-y-4 text-slate-700 leading-relaxed text-lg">
+                                    <p>
+                                        Nacida en Barcelona en 1954, Carme Pinós es una de las figuras más relevantes de la arquitectura contemporánea. Alcanzó la fama internacional en los 80 junto a Enric Miralles con proyectos como el Cementerio de Igualada.
+                                    </p>
+                                    <p>
+                                        En 1991 fundó el <strong>Estudio Carme Pinós</strong>, desde donde ha desarrollado un lenguaje propio basado en la responsabilidad social, el respeto por el entorno y la legibilidad estructural.
+                                    </p>
+                                    <p>
+                                        Ganadora del <strong>Premio Nacional de Arquitectura 2021</strong>, su obra se estudia en universidades de todo el mundo por su capacidad de transformar el espacio público.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                <h3 className="font-bold text-slate-800 mb-4 uppercase text-xs tracking-widest">Reconocimientos</h3>
+                                <ul className="space-y-3 text-sm text-slate-600">
+                                    <li className="flex items-start gap-2">• Medalla de Oro de la Arquitectura (2022)</li>
+                                    <li className="flex items-start gap-2">• Premio Arnold W. Brunner (2016)</li>
+                                    <li className="flex items-start gap-2">• Berkeley-Rupp Prize</li>
+                                    <li className="flex items-start gap-2">• Miembro Honorario de la AIA</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        {/* Proyecto: CaixaForum Zaragoza */}
+                        <section className="bg-slate-900 text-white p-8 md:p-12">
+                            <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+                                <div>
+                                    <span className="text-amber-500 font-bold text-xs uppercase tracking-widest">Análisis de Obra</span>
+                                    <h2 className="text-4xl font-bold">CAIXAFORUM ZARAGOZA</h2>
+                                </div>
+                                <div className="text-right text-slate-400 text-sm">
+                                    <p className="flex items-center justify-end gap-1"><MapPin size={14} className="text-amber-500" /> Zaragoza, España</p>
+                                    <p className="flex items-center justify-end gap-1"><Building2 size={14} className="text-amber-500" /> Inaugurado en 2014</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                                <div className="space-y-6">
+                                    <div className="relative group">
+                                        <div className="absolute -inset-1 bg-gradient-to-r from-amber-600 to-amber-400 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                                        <div className="relative bg-slate-800 rounded-lg overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
+                                            {/* Imagen de referencia del proyecto */}
+                                            <img 
+                                                src="https://images.unsplash.com/photo-1518005020251-582c789765c7?auto=format&fit=crop&q=80&w=800" 
+                                                alt="CaixaForum Zaragoza"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+                                        <h3 className="text-amber-500 font-bold mb-2 flex items-center gap-2 italic">
+                                            <Lightbulb size={18} /> ¿Por qué llama la atención?
+                                        </h3>
+                                        <p className="text-sm text-slate-300 leading-relaxed">
+                                            Su espectacular <strong>levitación</strong>. El edificio se descompone en dos volúmenes de formas geométricas puras que parecen flotar sobre el terreno, liberando la planta baja para crear una plaza que regala espacio a la ciudad.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="p-5 rounded-xl bg-slate-800 border border-slate-700">
+                                        <h4 className="text-amber-500 text-xs font-bold uppercase mb-2">Uso y Programa</h4>
+                                        <p className="text-sm">Centro cultural dinámico: salas de cine, exposiciones temporales y una cafetería con vistas panorámicas.</p>
+                                    </div>
+                                    <div className="p-5 rounded-xl bg-slate-800 border border-slate-700">
+                                        <h4 className="text-amber-500 text-xs font-bold uppercase mb-2">Materialidad</h4>
+                                        <p className="text-sm">Uso magistral de <strong>aluminio perforado</strong>, hormigón visto y grandes superficies vidriadas.</p>
+                                    </div>
+                                    <div className="p-5 rounded-xl bg-slate-800 border border-slate-700 sm:col-span-2">
+                                        <h4 className="text-amber-500 text-xs font-bold uppercase mb-2">Inspiración y Forma</h4>
+                                        <p className="text-sm">La forma surge de la voluntad de no crear un edificio masivo. Se inspira en la idea de un "árbol" o estructura que sostiene dos cajas, permitiendo que la luz y el aire circulen por debajo y a través de él.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Planimetría Esquemática */}
+                        <section className="p-8 md:p-12 bg-white">
+                            <h2 className="text-2xl font-bold mb-10 text-slate-800 flex items-center gap-2">
+                                <span className="bg-slate-100 p-2 rounded-lg text-slate-800"><Layers size={20} /></span> Detalles Técnicos
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                <div className="text-center group">
+                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl aspect-square flex items-center justify-center p-6 mb-4 group-hover:border-amber-400 transition-colors">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full text-slate-400 group-hover:text-amber-600 transition-colors">
+                                            <rect x="20" y="20" width="30" height="60" fill="none" stroke="currentColor" strokeWidth="1" />
+                                            <rect x="50" y="10" width="40" height="30" fill="none" stroke="currentColor" strokeWidth="1" />
+                                            <circle cx="45" cy="45" r="4" fill="currentColor" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="font-bold text-slate-700 text-sm">PLANTA</h3>
+                                    <p className="text-xs text-slate-500 mt-2">Distribución en niveles suspendidos para separar funciones.</p>
+                                </div>
+
+                                <div className="text-center group">
+                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl aspect-square flex items-center justify-center p-6 mb-4 group-hover:border-amber-400 transition-colors">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full text-slate-400 group-hover:text-amber-600 transition-colors">
+                                            <path d="M10,80 L40,80 L40,30 L90,30 L90,60 L10,60 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+                                            <line x1="10" y1="85" x2="90" y2="85" stroke="currentColor" strokeWidth="2" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="font-bold text-slate-700 text-sm">FACHADA</h3>
+                                    <p className="text-xs text-slate-500 mt-2">Piel de aluminio perforado que genera un patrón lumínico.</p>
+                                </div>
+
+                                <div className="text-center group">
+                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl aspect-square flex items-center justify-center p-6 mb-4 group-hover:border-amber-400 transition-colors">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full text-slate-400 group-hover:text-amber-600 transition-colors">
+                                            <path d="M20,90 L20,40 M80,90 L80,40" stroke="currentColor" strokeWidth="2" />
+                                            <rect x="10" y="20" width="80" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="font-bold text-slate-700 text-sm">SECCIÓN</h3>
+                                    <p className="text-xs text-slate-500 mt-2">Esquema de los apoyos estructurales y voladizos.</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Bibliografía y Footer */}
+                        <footer className="p-8 md:p-12 bg-slate-50 border-t border-slate-200">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                                        <BookOpen size={16} className="text-amber-600" /> Fuentes Bibliográficas
+                                    </h4>
+                                    <ul className="text-[11px] text-slate-500 uppercase tracking-widest space-y-1">
+                                        <li>• Estudio Carme Pinós - Proyectos Oficiales</li>
+                                        <li>• Revista El Croquis, N. 159</li>
+                                        <li>• ArchDaily - "CaixaForum Zaragoza"</li>
+                                        <li>• Ministerio de Transportes (MITMA) - Archivo Arquitectura</li>
+                                    </ul>
+                                </div>
+                                <button 
+                                    onClick={handlePrint}
+                                    className="no-print bg-amber-600 hover:bg-amber-700 text-white px-10 py-4 rounded-full font-black text-sm transition-all shadow-xl active:scale-95 flex items-center gap-3 uppercase tracking-widest"
+                                >
+                                    <Download size={20} /> Guardar como PDF
+                                </button>
+                            </div>
+                        </footer>
+                    </div>
+
+                    <div className="text-center mt-8 text-slate-400 text-xs no-print">
+                        Diseño Arquitectónico Informativo © 2024
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
